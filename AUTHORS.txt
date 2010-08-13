@@ -1,0 +1,7 @@
+jQuery UI Authors
+
+This software consists of voluntary contributions made by multiple
+individuals. For exact contribution history, see the revision history
+and logs, available at http://github.com/cloudflare/CloudFlare-UI
+
+Christopher Joel (chris@aethermedia.net)
