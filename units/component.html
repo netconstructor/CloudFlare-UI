@@ -105,7 +105,6 @@
                         initialize: function(options) {
                             
                             var self = this;
-                            $.cf.log('Initializing foo. Element is ' + self._element);
                             self.setting = options.setting;
                         },
                         baseMethod: function() {
@@ -120,7 +119,6 @@
                         hasSetting: function() {
                             
                             var self = this;
-                            $.cf.log('Self is ' + self._componentName);
                             return self.setting == true;
                         },
                         setValue: function(valueOne, valueTwo) {

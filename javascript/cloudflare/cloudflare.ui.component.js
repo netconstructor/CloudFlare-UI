@@ -211,8 +211,6 @@
                                 $.data(target, className, new Component(target, className, options));
                             } else if(component && method.substr(0, 1) != '_' && $.isFunction(component[method])) {
                                 
-                                $.cf.log('Component is ' + className);
-                                $.cf.log('Method is ' + method);
                                 // Everything checks out, so call the method and pass the arguments
                                 result = component[method].apply(component, options);
                             } else {
