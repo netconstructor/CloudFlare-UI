@@ -1,66 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <title>CloudFlare UI Demos</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        
     </head>
     <body>
         
-        <div id="MyComponent"></div>
-        <div id="MyComponentTwo"></div>
-        
         <script type="text/javascript" src="/javascript/jquery/jquery-1.4.2.min.js"></script>
-        <script type="text/javascript" src="/javascript/cloudflare/cloudflare.ui.core.js"></script>
-        <script type="text/javascript" src="/javascript/cloudflare/cloudflare.ui.component.js"></script>
-        <script type="text/javascript">
-            
-            $.cf.component(
-                'cf.simpleTest',
-                {
-                    initialize: function(param) {
-                        param = param || "is null";
-                        $.cf.log('Initialized simpleTest! param: ' + param);
-                    },
-                    someMethod: function() {},
-                    objProperty: {
-                        one: 1,
-                        a: 'a'
-                    }
-                }
-            );
-            
-            $.cf.component(
-                'cf.simpleTestSubclass',
-                $.cf.simpleTest,
-                {
-                    initialize: function() {
-                        
-                        $.cf.log('Initialized simpleTestSubclass!');
-                        var self = this;
-                        self.superMethod("test");
-                    },
-                    testMethod: function() {
-                        
-                        var self = this;
-                        $.cf.log('testMethod has been called on simpleTestSubclass!');
-                    },
-                    objProperty: {
-                        a: 'overridden!',
-                        newProp: 'newProp!'
-                    }
-                }
-            );
-            
-            $(function() {
-                
-                $.cf.log('Instantiating simpleTest!');
-                $('#MyComponent').simpleTest();
-                $.cf.log('Instantiating simpleTestSubclass!');
-                $('#MyComponentTwo').simpleTestSubclass();
-                $.cf.log('Calling simpleTestSubclass.testMethod!');
-                $('#MyComponentTwo').simpleTestSubclass('testMethod');
-                
-            });
-        </script>
+        
     </body>
 </html>

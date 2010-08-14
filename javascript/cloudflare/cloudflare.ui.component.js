@@ -21,75 +21,86 @@
     $.extend(
         $.cf.CloudFlareObject,
         {
-            subclass: function(properties) {
+            subclass: (function() {
                 
-                var self = this,
-                    parentClass = self.prototype,
-                    nextPrototype = new self(null, true),
-                    NextClass;
+                var subclassing = false;
                 
-                // We need to sequentially copy properties into the new prototype
-                for(var property in properties) {
+                return function(properties) {
                     
-                    // Handle class methods
-                    if( typeof properties[property] == 'function' &&
-                        $.isFunction(properties[property])) {
+                    var self = this,
+                        parentClass = self.prototype,
+                        nextPrototype,
+                        NextClass;
+                    
+                    // Short-circuit the construction of the base class in order to 
+                    // create our starting prototype
+                    subclassing = true;
+                    nextPrototype = new self();
+                    subclassing = false;
+                    
+                    // We need to sequentially copy properties into the new prototype
+                    for(var property in properties) {
                         
-                        nextPrototype[property] = (function(property, implementation) {
+                        // Handle class methods
+                        if( typeof properties[property] == 'function' &&
+                            $.isFunction(properties[property])) {
                             
-                            // We return a proxy function that sets class-level properties
-                            // referencing the inherited prototype (superClass) and the
-                            // overridden method (superMethod) if one exists.
-                            return function() {
-                                var placeholder = this.superMethod,
-                                    returnValue;
+                            nextPrototype[property] = (function(property, implementation) {
                                 
-                                this.superClass = parentClass;
-                                this.superMethod = this.superClass[property] || function() {};
-                                
-                                // Now that superClass and superMethod are set, we can call the 
-                                // actual class method.
-                                returnValue = implementation.apply(this, arguments);
-                                this.superMethod = placeholder;
-                                
-                                return returnValue;
-                            }
-                        })(property, properties[property]);
-                    // Handle properties that are value objects by extending and overriding 
-                    // values with those from the same property in the subclass.
-                    } else if(  typeof properties[property] == 'object' && 
-                                typeof parentClass[property] == 'object' &&
-                                $.isPlainObject(properties[property])) {
-                        
-                        nextPrototype[property] = $.extend(
-                            {},
-                            parentClass[property],
-                            properties[property]
-                        );
-                    // Default to blindly copying over the new property for all other types.
-                    } else {
-                        
-                        nextPrototype[property] = properties[property];
+                                // We return a proxy function that sets class-level properties
+                                // referencing the inherited prototype (superClass) and the
+                                // overridden method (superMethod) if one exists.
+                                return function() {
+                                    var placeholder = this.superMethod,
+                                        returnValue;
+                                    
+                                    this.superClass = parentClass;
+                                    this.superMethod = this.superClass[property] || function() {};
+                                    
+                                    // Now that superClass and superMethod are set, we can call the 
+                                    // actual class method.
+                                    returnValue = implementation.apply(this, arguments);
+                                    this.superMethod = placeholder;
+                                    
+                                    return returnValue;
+                                }
+                            })(property, properties[property]);
+                        // Handle properties that are value objects by extending and overriding 
+                        // values with those from the same property in the subclass.
+                        } else if(  typeof properties[property] == 'object' && 
+                                    typeof parentClass[property] == 'object' &&
+                                    $.isPlainObject(properties[property])) {
+                            
+                            nextPrototype[property] = $.extend(
+                                {},
+                                parentClass[property],
+                                properties[property]
+                            );
+                        // Default to blindly copying over the new property for all other types.
+                        } else {
+                            
+                            nextPrototype[property] = properties[property];
+                        }
                     }
+                    
+                    // We will wrap construction in a function that checks to make sure that we are 
+                    // not instantiating the class for the purposes of deriving another class.
+                    NextClass = function() {
+                        if(!subclassing && this._construct) {
+                            
+                            this._construct.apply(this, arguments);
+                        }
+                    };
+                    
+                    NextClass.prototype = nextPrototype;
+                    NextClass.constructor = NextClass;
+                    
+                    // Pass 'subclass' along to the new class, as it is not part of the prototype
+                    NextClass.subclass = arguments.callee;
+                    
+                    return NextClass;
                 }
-                
-                // We will wrap construction in a function that checks to make sure that we are 
-                // not instantiating the class for the purposes of deriving another class.
-                NextClass = function(parameters, subclassing) {
-                    if(!subclassing && this._construct) {
-                        
-                        this._construct.apply(this, parameters);
-                    }
-                };
-                
-                NextClass.prototype = nextPrototype;
-                NextClass.constructor = NextClass;
-                
-                // Pass 'subclass' along to the new class, as it is not part of the prototype
-                NextClass.subclass = arguments.callee;
-                
-                return NextClass;
-            }
+            })()
         }
     );
     
@@ -101,7 +112,13 @@
         {
             CloudFlareComponent: $.cf.CloudFlareObject.subclass(
                 {
-                    _construct: function(element, componentName) {
+                    // TODO: Make this actually do something useful...
+                    _trigger: function(event, data) {
+                        
+                        var self = this;
+                        self._element.trigger(event, data);
+                    },
+                    _construct: function(element, componentName, options) {
                         
                         // Construct! Sub-components should not override the constructor..
                         var self = this;
@@ -117,7 +134,7 @@
                         );
                         
                         $.data(self._element, self._componentName, self);
-                        self.initialize.apply(self, $.map(arguments, function(a, i) { return i == 0 ? null : a; }));
+                        self.initialize(options);
                     },
                     destruct: function() {
                         
@@ -127,7 +144,7 @@
                         self._element.removeData(self.componentName);
                         // TODO: Detach events..
                     },
-                    initialize: function() {
+                    initialize: function(options) {
                         
                         // Initialize! This method is safe to override..
                     }
@@ -166,15 +183,18 @@
                 $.fn[className] = function(method) {
                     
                     var targets = this,
-                        options = arguments.length ? $.map(arguments, function(a, i) { return i == 0 ? null : a; }) : [];
+                        result = this,
+                        options;
                     
                     // If no method is specified, we will attempt to construct
-                    method = method || '_construct';
-                    
-                    // If we're constructing, we should make space for the 'element' argument
-                    if(method == '_construct') {
+                    if(!method || $.isPlainObject(method)) {
                         
-                        options.unshift(null, null);
+                        options = method || {};
+                        method = '_construct';
+                    } else {
+                        
+                        // A method is specified, so all other arguments will be the method parameters
+                        options = arguments.length ? $.map(arguments, function(a, i) { return i == 0 ? null : a; }) : [];
                     }
                     
                     targets.each(
@@ -185,12 +205,14 @@
                             // We're constructing only if the component doesn't exist
                             if(method == '_construct' && !component) {
                                 
-                                // For construction, we replace the first two argument with the 
-                                // element target and the class name.
-                                options.splice(0, 1, target, className);
-                                $.data(target, className, new Component(options));
+                                // The component constructor expects a reference
+                                // the element, the component name and an hash
+                                // of instance options
+                                $.data(target, className, new Component(target, className, options));
                             } else if(component && method.substr(0, 1) != '_' && $.isFunction(component[method])) {
                                 
+                                $.cf.log('Component is ' + className);
+                                $.cf.log('Method is ' + method);
                                 // Everything checks out, so call the method and pass the arguments
                                 result = component[method].apply(component, options);
                             } else {
@@ -202,7 +224,7 @@
                         }
                     );
                     
-                    return targets;
+                    return result;
                 }
             }
         }
