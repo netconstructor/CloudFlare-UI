@@ -8,109 +8,13 @@
  */
 (function($) {
     
-    // Inheritance pattern inspired by John Resig's article at
-    // http://ejohn.org/blog/simple-javascript-inheritance/
-    $.extend(
-        $.cf,
-        {
-            // The base subclassable object for the CloudFlare chain
-            CloudFlareObject: function() {},
-        }
-    );
-    
-    $.extend(
-        $.cf.CloudFlareObject,
-        {
-            subclass: (function() {
-                
-                var subclassing = false;
-                
-                return function(properties) {
-                    
-                    var self = this,
-                        parentClass = self.prototype,
-                        nextPrototype,
-                        NextClass;
-                    
-                    // Short-circuit the construction of the base class in order to 
-                    // create our starting prototype
-                    subclassing = true;
-                    nextPrototype = new self();
-                    subclassing = false;
-                    
-                    // We need to sequentially copy properties into the new prototype
-                    for(var property in properties) {
-                        
-                        // Handle class methods
-                        if( typeof properties[property] == 'function' &&
-                            $.isFunction(properties[property])) {
-                            
-                            nextPrototype[property] = (function(property, implementation) {
-                                
-                                // We return a proxy function that sets class-level properties
-                                // referencing the inherited prototype (superClass) and the
-                                // overridden method (superMethod) if one exists.
-                                return function() {
-                                    var placeholder = this.superMethod,
-                                        returnValue;
-                                    
-                                    this.superClass = parentClass;
-                                    this.superMethod = this.superClass[property] || function() {};
-                                    
-                                    // Now that superClass and superMethod are set, we can call the 
-                                    // actual class method.
-                                    returnValue = implementation.apply(this, arguments);
-                                    this.superMethod = placeholder;
-                                    
-                                    return returnValue;
-                                }
-                            })(property, properties[property]);
-                        // Handle properties that are value objects by extending and overriding 
-                        // values with those from the same property in the subclass.
-                        } else if(  typeof properties[property] == 'object' && 
-                                    typeof parentClass[property] == 'object' &&
-                                    $.isPlainObject(properties[property])) {
-                            
-                            nextPrototype[property] = $.extend(
-                                {},
-                                parentClass[property],
-                                properties[property]
-                            );
-                        // Default to blindly copying over the new property for all other types.
-                        } else {
-                            
-                            nextPrototype[property] = properties[property];
-                        }
-                    }
-                    
-                    // We will wrap construction in a function that checks to make sure that we are 
-                    // not instantiating the class for the purposes of deriving another class.
-                    NextClass = function() {
-                        if(!subclassing && this._construct) {
-                            
-                            this._construct.apply(this, arguments);
-                        }
-                    };
-                    
-                    NextClass.prototype = nextPrototype;
-                    NextClass.constructor = NextClass;
-                    
-                    // Pass 'subclass' along to the new class, as it is not part of the prototype
-                    NextClass.subclass = arguments.callee;
-                    
-                    return NextClass;
-                }
-            })()
-        }
-    );
-    
     // Base class for all CloudFlare UI components. The Component is an abstract
     // class, and cannot be instantiated through the component factory.
     // TODO: Component event dispatching..
     $.extend(
         $.cf,
         {
-            CloudFlareComponent: $.cf.CloudFlareObject.subclass(
+            Component: $.cf.EventDispatcher.subclass(
                 {
                     // TODO: Make this actually do something useful...
                     _trigger: function(event, data) {
@@ -167,7 +71,7 @@
                 if(!subclass) {
                     // Subclass isn't defined, so default to CloudFlareComponent
                     subclass = base;
-                    base = $.cf.CloudFlareComponent;
+                    base = $.cf.Component;
                 }
                 
                 // Create the namespace if it isn't there, and assign the subclass

@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>CloudFlare UI Core Unit Tests</title>
+        
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        
+        <link rel="stylesheet" media="screen" href="/css/qunit.css" />
+        <link rel="stylesheet" media="screen" href="/css/cloudflare.ui.core.css" />
+                
+    </head>
+    <body>
+        
+        <h1 id="qunit-header">CloudFlare UI Core Unit Tests</h1>
+        <h2 id="qunit-banner"></h2>
+        <h2 id="qunit-userAgent"></h2>
+        <ol id="qunit-tests"></ol>
+        
+        <script type="text/javascript" src="/javascript/jquery/jquery-1.4.2.min.js"></script>
+        <script type="text/javascript" src="/javascript/jquery/qunit.js"></script>
+        <script type="text/javascript" src="/javascript/cloudflare/cloudflare.ui.core.js"></script>
+        <script type="text/javascript" src="/javascript/cloudflare/cloudflare.ui.component.js"></script>
+        <script type="text/javascript">
+            
+            $(function() {
+                
+                var BaseClass = $.cf.AncestralObject.subclass(
+                    {
+                        _construct: function() {
+                            
+                            this.inherit = true;
+                        },
+                        baseProperty: 'value',
+                        baseOptions: {
+                            
+                            first: 1,
+                            two: 'a'
+                        },
+                        baseMethod: function() {
+                            
+                            return true;
+                        },
+                        overwrittenMethod: function() {
+                            
+                            return 1;
+                        },
+                        hasInherit: function() {
+                            
+                            return this.inherit === true;
+                        }
+                    }
+                );
+                
+                var SubClass = BaseClass.subclass(
+                    {
+                        _construct: function() {
+                            
+                            this.noInherit = true;
+                            this.superMethod();
+                        },
+                        subProperty: true,
+                        baseOptions: {
+                            
+                            two: 'b',
+                            third: true
+                        },
+                        overwrittenMethod: function() {
+                            
+                            return 2;
+                        }
+                    }
+                );
+                
+                var ThirdClass = SubClass.subclass(
+                    {
+                        _construct: function() {},
+                        baseProperty: 99,
+                        subProperty: false,
+                        baseOptions: {
+                            first: 2
+                        },
+                        overwrittenMethod: function() {
+                            
+                            return this.superMethod();
+                        },
+                        proxyBaseMethod: function() {
+                            
+                            return this.superClass.baseMethod();
+                        },
+                        proxyBaseOptions: function() {
+                            
+                            return this.superClass.baseOptions.first;
+                        }
+                    }
+                );
+                
+                var Evented = $.cf.EventDispatcher.subclass(
+                    {
+                        someAction: function() {
+                            
+                            var self = this;
+                            self.dispatch('action', {});
+                        }
+                    }
+                );
+                
+                test(
+                    "Basic polymorphism",
+                    function() {
+                        
+                        stop();
+                        
+                        try {
+                            
+                            var foo = new SubClass();
+                            
+                            if(foo instanceof BaseClass) {
+                                
+                                ok(true, "Instance of subclass reports that it is also an instance of the base class.");
+                            } else {
+                                
+                                ok(false, "Instance of subclass failed to believe that it was also an instance of the base class!");
+                            }
+                            
+                            if(foo.baseMethod && foo.baseMethod()) {
+                                
+                                ok(true, "Base class method was properly inherited by subclass.");
+                            } else {
+                                
+                                ok(false, "Subclass failed to inherit a method in the base class!");
+                            }
+                            
+                            if(foo.overwrittenMethod && foo.overwrittenMethod() == 2) {
+                                
+                                ok(true, "Base class method was successfully overwritten by the subclass.");
+                            } else {
+                                
+                                ok(false, "Subclass failed to overwrite a method in the base class!");
+                            }
+                        } catch(e) {
+                            
+                            ok(false, "An exception was thrown while performing test operations: " + e);
+                        }
+                        
+                        start();
+                    }
+                );
+                
+                test(
+                    "Property inheritance",
+                    function() {
+                        
+                        stop();
+                        
+                        try {
+                            
+                            var foo = new SubClass();
+                            var bar = new ThirdClass();
+                            var baz = new BaseClass();
+                            
+                            if(foo.baseProperty && foo.baseProperty == 'value') {
+                                
+                                ok(true, "Subclass successfully inherited a property from the base class.");
+                            } else {
+                                
+                                ok(false, "Subclass failed to inherit a property from the base class!");
+                            }
+                            
+                            if(foo.noInherit) {
+                                
+                                ok(true, "Class instance successfully assigned a visible property during construction.");
+                            } else {
+                                
+                                ok(false, "Class instance failed to assign a visible property during construction!")
+                            }
+                            
+                            if(baz.hasInherit()) {
+                                
+                                ok(true, "Base class can field a property assigned in the constructor.");
+                            } else {
+                                
+                                ok(false, "Base class failed to field a property assigned in the constructor!");
+                            }
+                            
+                            if(baz.hasInherit() && foo.hasInherit()) {
+                                
+                                ok(true, "Subclass can field a property assigned in the base class's constructor.");
+                            } else {
+                                
+                                ok(false, "Subclass failed to field a property assigned in the base class's constructor!");
+                            }
+                            
+                            if(foo.noInherit && !bar.noInherit) {
+                                
+                                ok(true, "Subclass correctly did not inherit a property set in the constructor of the base class.");
+                            } else {
+                                
+                                ok(false, "Subclass incorrectly inherited a property set in the constructor of the base class!");
+                            }
+                            
+                            if(bar.baseProperty && bar.baseProperty == 99) {
+                                
+                                ok(true, "Subclass successfully overwrote a property inherited from the base class.");
+                            } else {
+                                
+                                ok(false, "Subclass failed to overwrite a property inherited from the base class!");
+                            }
+                            
+                            if(foo.baseOptions && foo.baseOptions.first && foo.baseOptions.first == 1) {
+                                
+                                ok(true, "Subclass successfully integrated a value object inherited from the base class.");
+                            } else {
+                                
+                                ok(false, "Subclass did not successfully integrate a value object inherited from the base class!");
+                            }
+                            
+                            if(bar.baseOptions && bar.baseOptions.two && bar.baseOptions.third) {
+                                
+                                ok(true, "Subclass successfully integrated a value object with properties from multiple ancestors.");
+                            } else {
+                                
+                                ok(false, "Subclass failed to integrate a value object with properties from multiple ancestors!");
+                            }
+                            
+                        } catch(e) {
+                            
+                            ok(false, "An exception was thrown while performing test operations: " + e);
+                        }
+                        
+                        start();
+                    }
+                );
+                
+                test(
+                    "Super-class awareness",
+                    function() {
+                        stop();
+                        
+                        try {
+                            
+                            var foo = new ThirdClass();
+                            
+                            if(foo.overwrittenMethod() == 2) {
+                                
+                                ok(true, "Subclass successfully called the overwritten method on the super class.");
+                            } else {
+                                
+                                ok(false, "Subclass failed to call the overwritten method on the super class!");
+                            }
+                            
+                            if(foo.proxyBaseMethod()) {
+                                
+                                ok(true, "Subclass successfully called a method on a reference to the super class's prototype.");
+                            } else {
+                                
+                                ok(false, "Subclass failed to call a method on a reference to the super class's prototype!");
+                            }
+                            
+                            if(foo.proxyBaseOptions() == 1) {
+                                
+                                ok(true, "Subclass successfully accessed the value of an overwritten property in the superclass.");
+                            } else {
+                                
+                                ok(false, "Subclass failed to access the value of an overwritten property in the superclass!");
+                            }
+                        } catch(e) {
+                            
+                            ok(false, "An exception was thrown while performing test operations: " + e);
+                        }
+                        
+                        start();
+                    }
+                );
+                
+                test(
+                    "EventDispatcher tests",
+                    function() {
+                        stop();
+                        
+                        try {
+                            
+                            var foo = new Evented();
+                            var handlerCalled = false;
+                            var handlerData = false;
+                            
+                            var actionHandler = function(data) {
+                                
+                                handlerCalled = true;
+                            };
+                            
+                            var someHandler = function(data) {
+                                
+                                handlerCalled = true;
+                                handlerData = data;
+                            };
+                            
+                            
+                            foo.addListener('action', actionHandler);
+                            
+                            if(foo.getListeners('action').length > 0 && foo.getListeners('action')[0] == actionHandler) {
+                                
+                                ok(true, "An event listener was successfully registered with an event dispatcher.");
+                            } else {
+                                
+                                ok(false, "Failed to registered an event listener with an event dispatcher!");
+                            }
+                            
+                            foo.someAction();
+                            
+                            if(handlerCalled) {
+                                
+                                ok(true, "An event handler was successfully called when an event was dispatched.");
+                            } else {
+                                
+                                ok(false, "An event handler failed to be called when an event was dispatched!");
+                            }
+                            
+                            handlerCalled = false;
+                            foo.addListener('generic', someHandler);
+                            
+                            foo.dispatch('generic', { value: true });
+                            
+                            if(handlerCalled) {
+                                
+                                ok(true, "An event dispatcher successfully dispatched an event when told to do so externally.");
+                            } else {
+                                
+                                ok(false, "An event dispatcher failed to dispatch an event when told to do so externally!");
+                            }
+                            
+                            handlerCalled = false;
+                            
+                            if(handlerData && $.isPlainObject(handlerData) && handlerData.value) {
+                                
+                                ok(true, "Event data was successfully passed to an event handler.");
+                            } else {
+                                
+                                ok(false, "Event data failed to be passed to an event handler!");
+                            }
+                            
+                            handlerData = false;
+                            
+                            foo.removeListener('generic', someHandler);
+                            
+                            if(foo.getListeners('generic').length == 0) {
+                                
+                                ok(true, "An event handler was successfully removed from the event dispatcher.");
+                            } else {
+                                
+                                ok(false, "An event handler failed to be removed from the event dispatcher!");
+                            }
+                            
+                            for(var i = 0; i < 3; i++) {
+                                
+                                foo.addListener('event', function() {});
+                            }
+                            
+                            foo.removeListenersFor('event');
+                            
+                            if(foo.getListeners('event').length == 0) {
+                                
+                                ok(true, "Event dispatcher successfully removed all listeners for a particular event.");
+                            } else {
+                                
+                                ok(false, "Event dispatcher failed to remove all listeners for a particular event!");
+                            }
+                            
+                            for(var i = 0; i < 3; i++) {
+                                
+                                foo.addListener('event', function() {});
+                            }
+                            
+                            foo.addListener('generic', someHandler);
+                            
+                            foo.removeAllListeners();
+                            
+                            if(foo.getListeners('action').length == 0 && foo.getListeners('event').length == 0 && foo.getListeners('generic').length == 0) {
+                                
+                                ok(true, "Event dispatcher successfully removed all listeners for all events.");
+                            } else {
+                                
+                                ok(false, "Event dispatcher failed to remove all listeners for all events!");
+                            }
+                            
+                        } catch(e) {
+                            
+                            ok(false, "An exception was thrown while performing test operations: " + e);
+                        }
+                        
+                        start();
+                    }
+                );
+                
+                test(
+                    "Query tests",
+                    function() {
+                        stop();
+                        
+                        try {
+                            
+                            var query = new $.cf.Query();
+                            
+                            ok(false, "TODO");
+                        } catch(e) {
+                            
+                            ok(false, "An exception was thrown while performing test operations: " + e);
+                        }
+                        
+                        start();
+                    }
+                );
+                
+                test(
+                    "Collection tests",
+                    function() {
+                        stop();
+                        
+                        try {
+                            
+                            ok(false, "TODO");
+                        } catch(e) {
+                            
+                            ok(false, "An exception was thrown while performing test operations: " + e);
+                        }
+                        
+                        start();
+                    }
+                );
+            });
+        </script>
+    </body>
+</html>
