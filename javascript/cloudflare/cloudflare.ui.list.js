@@ -9,7 +9,19 @@
 (function($) {
     
     $.component(
+        'cf.listItemRenderer',
+        $.cf.dataRenderer,
+        {
+            _initialize: function(options) {
+                var self = this;
+                self._options = options;
+            }
+        }
+    );
+    
+    $.component(
         'cf.list',
+        $.cf.dataRenderer,
         {
             _initialize: function(options) {
                 var self = this;
