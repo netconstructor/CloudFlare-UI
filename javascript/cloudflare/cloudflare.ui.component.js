@@ -10,7 +10,7 @@
     
     // Base class for all CloudFlare UI components. The Component is an abstract
     // class, and cannot be instantiated through the component factory.
-    // TODO: Component event dispatching..
+    // TODO: Component/DOM event dispatching+triggering..
     $.extend(
         $.cf,
         {
