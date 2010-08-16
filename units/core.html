@@ -391,6 +391,8 @@
                     }
                 );
                 
+                // TODO: Create Query class unit tests
+                /*
                 test(
                     "Query tests",
                     function() {
@@ -409,6 +411,7 @@
                         start();
                     }
                 );
+                */
                 
                 test(
                     "Collection tests",
@@ -417,7 +420,27 @@
                         
                         try {
                             
-                            ok(false, "TODO");
+                            var foo = new $.cf.Collection();
+                            
+                            try {
+                                
+                                foo.addItemAt(10, true);
+                                
+                                ok(true, "Collection prevented an exception when adding an item that was out of bounds.");
+                                
+                                if(foo.source.length == 0) {
+                                    
+                                    ok(true, "Collection appropriately prevented the out of bounds index from being affected.");
+                                } else {
+                                    
+                                    ok(false, "Collection inappropriately allowed the out of bounds index to be affected!");
+                                }
+                                
+                            } catch(e) {
+                                
+                                ok(false, "Collection failed to prevent an exception when adding an item that was out of bounds!");
+                            }
+                            
                         } catch(e) {
                             
                             ok(false, "An exception was thrown while performing test operations: " + e);
