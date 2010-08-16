@@ -1,14 +1,28 @@
 /*!
- * CloudFlare UI List
+ * CloudFlare UI List & ListItemRenderer
  *
  * Copyright 2010, AUTHORS.txt
- * Licensed under the MIT license, see MIT-LICENSE.txt
+ * Dual licensed under the MIT & GPLv2 licenses.
+ * See MIT-LICENSE.txt & GPL-LICENSE.txt
+ * 
+ * CloudFlare UI Documentation:
+ * 
+ * http://wiki.github.com/cloudflare/CloudFlare-UI/
+ * 
+ * 
+ * CloudFlare UI incorporates the following independent projects:
+ * 
+ * jQuery (Dual licensed under MIT & GPLv2 licenses)
+ * http://jquery.com/
+ * Copyright 2010, John Resig
  *
- * TODO: Documentation URL
+ * QUnit (Dual licensed under MIT & GPLv2 licenses)
+ * http://docs.jquery.com/QUnit
+ * Copyright 2009, John Resig, Jšrn Zaefferer
  */
 (function($) {
     
-    $.component(
+    $.cf.component(
         'cf.listItemRenderer',
         $.cf.dataRenderer,
         {
@@ -19,7 +33,7 @@
         }
     );
     
-    $.component(
+    $.cf.component(
         'cf.list',
         $.cf.dataRenderer,
         {
