@@ -25,12 +25,26 @@
     $.cf.component(
         'cf.dataRenderer',
         {
-            _initialize: function(options) {
+            _settings: {
+                dataProvider: new $.cf.Collection(),
+                itemRenderer: null
+            },
+            _initialize: function() {
                 
                 var self = this;
                 
-                self.dataProvider(options.dataProvider);
-                self._dataProvider = self._dataProvider || new $.cf.Collection();
+                self.superMethod();
+                
+                self._invalidateDataProvider();
+                self._invalidateItemRenderer();
+            },
+            _invalidateDataProvider: function() {
+                
+                // Redraw display based on current data provider..
+            },
+            _invalidateItemRenderer: function() {
+                
+                // Redraw display based on current item renderer..
             },
             dataProvider: function(dataProvider) {
                 
@@ -39,11 +53,25 @@
                 if(dataProvider && dataProvider instanceof $.cf.Collection) {
                     
                     // Set..
-                    self._dataProvider = dataProvider;
+                    self._settings.dataProvider = dataProvider;
+                    self._invalidateDataProvider();
                 } else {
                     
                     // Get..
-                    return self._dataProvider;
+                    return self._settings.dataProvider;
+                }
+            },
+            itemRenderer: function(itemRenderer) {
+                
+                if(itemRenderer && typeof itemRenderer == 'string') {
+                    
+                    // Set..
+                    self._settings.itemRenderer = itemRenderer;
+                    self._invalidateItemRenderer();
+                } else {
+                    
+                    // Get..
+                    return self._settings.itemRenderer;
                 }
             }
         }

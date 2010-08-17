@@ -36,10 +36,16 @@
                         var self = this;
                         self._element.trigger(event, data);
                     },
+                    _settings: {},
                     _construct: function(element, componentName, options) {
                         
                         // Construct! Sub-components should not override the constructor..
                         var self = this;
+                        
+                        $.extend(
+                            self._settings,
+                            options
+                        );
                         
                         self._componentName = componentName;
                         self._element = $(element);
@@ -52,7 +58,7 @@
                         );
                         
                         $.data(self._element, self._componentName, self);
-                        self.initialize(options);
+                        self.initialize();
                     },
                     destruct: function() {
                         
@@ -64,6 +70,13 @@
                     },
                     initialize: function(options) {
                         
+                        var self = this;
+                        
+                        self._options = $.extend(
+                            {},
+                            self._options || {},
+                            options
+                        );
                         // Initialize! This method is safe to override..
                     }
                 }

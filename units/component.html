@@ -32,10 +32,10 @@
                 $.cf.component(
                     'cf.Foo',
                     {
-                        initialize: function(options) {
+                        initialize: function() {
                             
                             var self = this;
-                            self.setting = options.setting;
+                            self.setting = self._settings.setting;
                         },
                         baseMethod: function() {
                             

@@ -22,18 +22,33 @@
  */
 (function($) {
     
-    // Inheritance pattern inspired by John Resig's article at
-    // http://ejohn.org/blog/simple-javascript-inheritance/
     $.extend(
         $,
         {
             cf: {
+                logType: {
+                    
+                    debug: "[ D ]",
+                    warning: "[ W ]",
+                    error: "[ E ]"
+                },
+                log: function(message, type) {
+                    
+                    type = type || $.cf.logType.debug;
+                    
+                    try {
+                        
+                        console.log(type + " " + message);
+                    } catch(e) { /* Console.log not supported... */ }
+                },
                 // The base subclassable object for the CloudFlare chain
-                AncestralObject: function() {},
+                AncestralObject: function() {}
             }
         }
     );
     
+    // Inheritance pattern inspired by John Resig's article at
+    // http://ejohn.org/blog/simple-javascript-inheritance/
     $.extend(
         $.cf.AncestralObject,
         {
@@ -131,6 +146,12 @@
                         
                         self._listeners = {};
                     },
+                    _destruct: function() {
+                        
+                        var self = this;
+                        
+                        self.removeAllListeners();
+                    },
                     addListener: function(event, listener) {
                         
                         var self = this;
@@ -202,21 +223,6 @@
     $.extend(
         $.cf,
         {
-            logType: {
-                
-                debug: "[ D ]",
-                warning: "[ W ]",
-                error: "[ E ]"
-            },
-            log: function(message, type) {
-                
-                type = type || $.cf.logType.debug;
-                
-                try {
-                    
-                    console.log(type + " " + message);
-                } catch(e) { /* Console.log not supported... */ }
-            },
             Query: $.cf.EventDispatcher.subclass(
                 {
                     _construct: function(options) {

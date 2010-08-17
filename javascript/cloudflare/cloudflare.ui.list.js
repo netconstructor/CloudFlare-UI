@@ -26,10 +26,13 @@
         'cf.listItemRenderer',
         $.cf.dataRenderer,
         {
-            _initialize: function(options) {
+            _initialize: function() {
+                
                 var self = this;
-                self._options = options;
-            }
+                
+            },
+            _invalidateItemRenderer: function() {},
+            _invalidateDataProvider: function() {}
         }
     );
     
@@ -37,11 +40,37 @@
         'cf.list',
         $.cf.dataRenderer,
         {
-            _initialize: function(options) {
+            _settings: {
+                title: null,
+                effects: {
+                    addItem: function(item, complete) {
+                        item.show();
+                        complete();
+                    },
+                    removeItem: function(item, complete) {
+                        item.hide();
+                        complete();
+                    }
+                }
+            },
+            _initialize: function() {
+                
                 var self = this;
-                self._options = options;
-            }
+                
+                self.superMethod();
+            },
+            _invalidateTitle: function() {},
+            _invalidateItemRenderer: function() {},
+            _invalidateDataProvider: function() {},
+            _resolveItem: function() {},
+            _resolveItemSelector: function() {},
+            title: function(title) {},
+            effects: function(effects) {},
+            next: function() {},
+            previous: function() {},
+            highlight: function(item) {},
+            select: function(item) {}
+            
         }
     );
-    
 })(jQuery);
