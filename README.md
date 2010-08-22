@@ -1,9 +1,9 @@
 CloudFlare UI
 =============
 
-
 About
 -----
+
 CloudFlare UI is a JavaScript project that was started as a UI framework for
 cloudflare.com, and was originally based on jQuery UI. As the project evolved,
 the jQuery UI Widget pattern no longer served as the best platform to base our
@@ -18,15 +18,15 @@ incredible projects, without which CloudFlare UI could not have been made:
 * QUnit (http://docs.jquery.com/QUnit)
 * Adobe Flex SDK (http://opensource.adobe.com/wiki/display/flexsdk/)
 
-
 Documentation
 -------------
+
 Find CloudFlare UI documentation at:
 * [The project wiki at Github](http://wiki.github.com/cloudflare/CloudFlare-UI/)
 
-
 Copyright information
 ---------------------
+
 CloudFlare UI 
 
 Copyright 2010, AUTHORS.txt
