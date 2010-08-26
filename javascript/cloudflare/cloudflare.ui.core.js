@@ -197,11 +197,10 @@
         {
             EventDispatcher: $.cf.AncestralObject.subclass(
                 {
+                    _listeners: {},
                     _construct: function() {
                         
                         var self = this;
-                        
-                        self._listeners = {};
                     },
                     destruct: function() {
                         
@@ -285,6 +284,9 @@
                     _construct: function(options) {
                         
                         var self = this;
+                        
+                        self.superMethod();
+                        
                         $.extend(self, options);
                     },
                     id: "",
@@ -332,17 +334,7 @@
                     },
                     mapResponse: function(response) {
                         
-                        if(!response) {
-                            
-                            $.cf.log("Got a null response from the server. Something isn't working right...", $.cf.logType.error);
-                            return false;
-                        } else if(response.hasOwnProperty('error')) {
-                            
-                            $.cf.log("The server returned an error! Error: " + response.error, $.cf.logType.error);
-                            return false;
-                        }
-                        
-                        return response;
+                        return response || false;
                     },
                     query: function(complete) {
                         
@@ -358,10 +350,23 @@
                                         error: function() {
                                             
                                             $.cf.log("There was an error making an AJAX call to " + self.url, $.cf.logType.error);
+                                            complete(false, self);
                                         },
                                         success: function(response, status, xhr) {
                                             
+                                            try {
+                                                
+                                                response = $.parseJSON(response);
+                                            } catch(e) {
+                                                
+                                                $.cf.log("An exception was thrown while parsing an AJAX response as JSON: " + e);
+                                                
+                                                complete(false, self);
+                                                return;
+                                            }
+                                            
                                             self.lastResponse = response;
+                                            
                                             complete(self.mapResponse(response), self);
                                         }
                                     },
@@ -381,14 +386,23 @@
                         
                         var self = this;
                         
-                        self.source = sourceArray || [];
+                        self.superMethod();
+                        
+                        if(sourceArray && $.isArray(sourceArray)) {
+                            self.source = sourceArray;
+                        }
+                        
+                        self._invalidate();
                     },
                     _invalidate: function() {
                         
                         var self = this;
                         
+                        self.length = self.source.length;
                         self.dispatch('change', self);
                     },
+                    source: [],
+                    length: 0,
                     at: function(index) {
                         
                         var self = this;
@@ -445,6 +459,7 @@
                                 if(it == item) {
                                     
                                     self.source.splice(i, 1);
+                                    self._invalidate();
                                     return false;
                                 }
                             }

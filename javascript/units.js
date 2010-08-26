@@ -440,8 +440,6 @@
                         }
                     );
                     
-                    // TODO: Create Query class unit tests
-                    /*
                     test(
                         "Query tests",
                         function() {
@@ -449,9 +447,33 @@
                             
                             try {
                                 
-                                var query = new $.cf.Query();
+                                var query = new $.cf.Query(
+                                    {
+                                        url: '/units/service.json'
+                                    }
+                                );
                                 
-                                ok(false, "TODO");
+                                query.query(
+                                    function(result, query) {
+                                        
+                                        if(result) {
+                                            
+                                            ok(true, "Query retrieved a valid response from the service.");
+                                            
+                                            if(result.hasOwnProperty('status') && result.status == 'success') {
+                                                
+                                                ok(true, "Query yielded well-formed, parse-able JSON.");
+                                            } else {
+                                                
+                                                ok(false, "Query did not yield well-formed, parse-able JSON!");
+                                            }
+                                        } else {
+                                            
+                                            ok(false, "Query failed to retrieve a valid response from the service!");
+                                        }
+                                    }
+                                );
+                                
                             } catch(e) {
                                 
                                 ok(false, "An exception was thrown while performing test operations: " + e);
@@ -460,7 +482,6 @@
                             start();
                         }
                     );
-                    */
                     
                     test(
                         "Collection tests",
@@ -469,7 +490,9 @@
                             
                             try {
                                 
-                                var foo = new $.cf.Collection();
+                                var foo = new $.cf.Collection(),
+                                    handlerCalled = false,
+                                    fooLength = 0;
                                 
                                 try {
                                     
@@ -489,6 +512,47 @@
                                     
                                     ok(false, "Collection failed to prevent an exception when adding an item that was out of bounds!");
                                 }
+                                
+                                foo.addItem('foo');
+                                
+                                if(foo.length == foo.source.length) {
+                                    
+                                    ok(true, "Collection's length value was updated when the collection was modified.");
+                                } else {
+                                    
+                                    ok(false, "Collection's length value did not update when the collection was modified!");
+                                }
+                                
+                                handlerCalled = false;
+                                fooLength = foo.length;
+                                
+                                foo.addListener(
+                                    'change',
+                                    function(collection) {
+                                        
+                                        handlerCalled = true;
+                                    }
+                                );
+                                
+                                foo.addItem(true);
+                                
+                                if(handlerCalled) {
+                                    
+                                    ok(true, "Collection dispatched a change event when the collection was modified.");
+                                    
+                                    if(foo.length == (fooLength + 1)) {
+                                        
+                                        ok(true, "Collection reported the correct length when an item was added.");
+                                    } else {
+                                        
+                                        ok(false, "Collection did not report the correct length when an item was added!");
+                                    }
+                                    
+                                } else {
+                                    
+                                    ok(false, "Collection did not dispatch a change event when the collection was modified!");
+                                }
+                                
                                 
                             } catch(e) {
                                 
@@ -622,22 +686,67 @@
                                 value: 1
                             }
                         ]
-                    );
+                    ),
+                    dataProviderUpdated = false,
+                    itemRendererUpdated = false;
                     
                     $.cf.component(
-                        'cf.dataFoo',
+                        'cf.dataRenderingFoo',
                         $.cf.dataRenderer,
                         {
-                            initialize: function() {
+                            _invalidateDataProvider: function() {
                                 
+                                dataProviderUpdated = true;
+                            },
+                            _invalidateItemRenderer: function() {
+                                
+                                itemRendererUpdated = true;
                             }
                         }
                     );
                     
+                    var foo = $('<div></div>').appendTo('body').dataRenderingFoo();
+                    
                     test(
                         'DataRenderer basic functionality',
                         function() {
-                            // TODO
+                            
+                            foo.dataRenderingFoo('dataProvider', dataProviderOne);
+                            
+                            if(foo.dataRenderingFoo('dataProvider') == dataProviderOne) {
+                                
+                                ok(true, "DataRenderer's data provider was successfully assigned.");
+                                
+                            } else {
+                                
+                                ok(false, "DataRenderer's data provider was not successfully assigned!");
+                            }
+                            
+                            if(dataProviderUpdated) {
+                                
+                                ok(true, "DataRenderer's data provider was successfully invalidated.");
+                            } else {
+                                
+                                ok(false, "DataRenderer's data provider was not successfully invalidated!");
+                            }
+                            
+                            foo.dataRenderingFoo('itemRenderer', 'someItemRenderer');
+                            
+                            if(foo.dataRenderingFoo('itemRenderer') == 'someItemRenderer') {
+                                
+                                ok(true, "DataRenderer's item renderer was successfully assigned.");
+                            } else {
+                                
+                                ok(false, "DataRenderer's item rendere was not successfully assigned!");
+                            }
+                            
+                            if(itemRendererUpdated) {
+                                
+                                ok(true, "DataRenderer's item renderer was successfully invalidated.");
+                            } else {
+                                
+                                ok(false, "DataRenderer's item renderer was not successfully invalidated!");
+                            }
                         }
                     );
                 },
@@ -646,7 +755,7 @@
                     test(
                         'List manipulation',
                         function() {
-                            // TODO
+                            ok(false, "TODO");
                         }
                     );
                 }

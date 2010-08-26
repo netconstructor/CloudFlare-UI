@@ -55,9 +55,11 @@
                 
                 var self = this;
                 
-                if(dataProvider && dataProvider instanceof $.cf.Collection) {
+                if(dataProvider) {
                     
                     // Set..
+                    dataProvider = dataProvider instanceof $.cf.Collection ? dataProvider : new $.cf.Collection(dataProvider);
+                    
                     if(self._settings.dataProvider) {
                         
                         self._settings.dataProvider.removeListener(
@@ -80,6 +82,8 @@
                 }
             },
             itemRenderer: function(itemRenderer) {
+                
+                var self = this;
                 
                 if(itemRenderer && typeof itemRenderer == 'string') {
                     
