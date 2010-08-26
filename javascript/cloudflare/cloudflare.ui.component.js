@@ -48,13 +48,15 @@
                         );
                         
                         self._componentName = componentName;
+                        self._removeHandler = function() {
+                            
+                            self.destroy();
+                        };
+                        
                         self._element = $(element);
                         self._element.bind(
                             'remove',
-                            function(event) {
-                                
-                                self.destroy();
-                            }
+                            self._removeHandler
                         );
                         
                         $.data(self._element, self._componentName, self);
@@ -66,21 +68,38 @@
                         var self = this;
                         
                         self._element.removeData(self.componentName);
-                        // TODO: Detach events..
+                        self._element.removeClass('cf-ui');
+                        self._element.unbind(
+                            'remove',
+                            self._removeHandler
+                        );
                     },
-                    initialize: function(options) {
+                    initialize: function() {
                         
                         var self = this;
                         
-                        self._options = $.extend(
-                            {},
-                            self._options || {},
-                            options
-                        );
+                        self._element.addClass('cf-ui');
                         // Initialize! This method is safe to override..
                     }
                 }
             )
+        }
+    );
+    
+    $.extend(
+        $.fn,
+        {
+            lineage: function(baseName) {
+                
+                var target = this.eq(0);
+                
+                if(target.data('lineage')) {
+                    
+                    return target.data('lineage')[baseName];
+                }
+                
+                return this;
+            }
         }
     );
     
@@ -131,7 +150,8 @@
                     targets.each(
                         function(i, e) {
                             var target = this;
-                            var component = $.data(target, className);
+                            var component = $.data(target, className),
+                                ancestors;
                             
                             // We're constructing only if the component doesn't exist
                             if(method == '_construct' && !component) {
@@ -139,7 +159,11 @@
                                 // The component constructor expects a reference
                                 // the element, the component name and an hash
                                 // of instance options
-                                $.data(target, className, new Component(target, className, options));
+                                component = new Component(target, className, options);
+                                
+                                // Assign this data to our target for the sake of 
+                                // future interaction
+                                $.data(target, className, component);
                             } else if(component && method.substr(0, 1) != '_' && $.isFunction(component[method])) {
                                 
                                 // Everything checks out, so call the method and pass the arguments

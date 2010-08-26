@@ -1,0 +1,36 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+    
+    <meta charset="UTF-8">
+    <title>CloudFlare UI Unit Tests</title>
+    <link rel="stylesheet" media="screen" href="/css/jquery/qunit.css" />
+    
+</head>
+<body>
+    
+    <h1 id="qunit-header">CloudFlare UI Unit Tests</h1>
+    <h2 id="qunit-banner"></h2>
+    <h2 id="qunit-userAgent"></h2>
+    <ol id="qunit-tests"></ol>
+    
+    <script type="text/javascript" src="/javascript/jquery/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="/javascript/jquery/qunit.js"></script>
+    <script type="text/javascript" src="/javascript/cloudflare/cloudflare.ui.core.js"></script>
+    <script type="text/javascript" src="/javascript/cloudflare/cloudflare.ui.component.js"></script>
+    <script type="text/javascript" src="/javascript/cloudflare/cloudflare.ui.datarenderer.js"></script>
+    <script type="text/javascript" src="/javascript/cloudflare/cloudflare.ui.list.js"></script>
+    <script type="text/javascript" src="/javascript/units.js"></script>
+    <script type="text/javascript">
+        
+        $(function() {
+            
+            for(var test in $.cf.units) {
+                
+                $.cf.log('Running tests for ' + test);
+                $.cf.units[test]();
+            }
+        });
+    </script>
+</body>
+</html>

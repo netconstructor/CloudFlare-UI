@@ -23,6 +23,34 @@
 (function($) {
     
     $.extend(
+        $.fn,
+        {
+            margin: function() {
+                
+                var marginTop = this.css('marginTop').substr(0, this.css('marginTop').length - 2);
+                var marginBottom = this.css('marginBottom').substr(0, this.css('marginBottom').length - 2);
+                var marginLeft = this.css('marginLeft').substr(0, this.css('marginLeft').length - 2);
+                var marginRight = this.css('marginRight').substr(0, this.css('marginRight').length - 2);
+                
+                return {
+                    top: marginTop,
+                    bottom: marginBottom,
+                    left: marginLeft,
+                    right: marginRight,
+                    horizontal: marginLeft + marginRight,
+                    vertical: marginTop + marginBottom
+                };
+            },
+            marginalWidth: function() { return this.width() + this.margin().horizontal; },
+            marginalInnerWidth: function() { return this.innerWidth() + this.margin().horizontal; },
+            marginalOuterWidth: function() { return this.outerWidth() + this.margin().horizontal; },
+            marginalHeight: function() { return this.height() + this.margin().vertical; },
+            marginalInnerHeight: function() { return this.innerHeight() + this.margin().vertical; },
+            marginalOuterHeight: function() { return this.outerHeight() + this.margin().vertical; }
+        }
+    );
+    
+    $.extend(
         $,
         {
             cf: {
@@ -40,6 +68,35 @@
                         
                         console.log(type + " " + message);
                     } catch(e) { /* Console.log not supported... */ }
+                },
+                normalizeCSS: function(measure) {
+                    
+                    measure = $.isFunction(measure) ? measure() : measure;
+                    
+                    if(typeof measure == 'number' || (typeof measure == 'string' && !(measure.substr(measure.length - 2, 2) == "px" || measure.substr(measure.length - 1, 1) == "%"))) {
+                        
+                        return measure + "px";
+                    }
+                    
+                    return measure;
+                },
+                normalizeDigital: function(measure) {
+                    
+                    measure = $.isFunction(measure) ? measure() : measure;
+                    
+                    if(typeof measure == 'string') {
+                        if(measure.substr(measure.length - 2, 2) == "px") {
+                            
+                            return parseInt(measure.substr(0, measure.length - 2));
+                        } else if(measure.substr(measure.length - 1, 1) == "%") {
+                            
+                            return -1;
+                        }
+                        
+                        return parseInt(measure);
+                    }
+                    
+                    return measure;
                 },
                 // The base subclassable object for the CloudFlare chain
                 AncestralObject: function() {}
@@ -146,7 +203,7 @@
                         
                         self._listeners = {};
                     },
-                    _destruct: function() {
+                    destruct: function() {
                         
                         var self = this;
                         
@@ -331,6 +388,11 @@
                         var self = this;
                         
                         self.dispatch('change', self);
+                    },
+                    at: function(index) {
+                        
+                        var self = this;
+                        return self.source[index];
                     },
                     addItem: function(item) {
                         

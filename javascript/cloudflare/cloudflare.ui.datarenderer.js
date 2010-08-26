@@ -35,6 +35,11 @@
                 
                 self.superMethod();
                 
+                self._handleDataProviderChange = function() {
+                    
+                    self._invalidateDataProvider();
+                };
+                
                 self._invalidateDataProvider();
                 self._invalidateItemRenderer();
             },
@@ -53,7 +58,20 @@
                 if(dataProvider && dataProvider instanceof $.cf.Collection) {
                     
                     // Set..
+                    if(self._settings.dataProvider) {
+                        
+                        self._settings.dataProvider.removeListener(
+                            'change',
+                            self._handleDataProviderChange
+                        );
+                    }
+                    
                     self._settings.dataProvider = dataProvider;
+                    self._settings.dataProvider.addListener(
+                        'change',
+                        self._handleDataProviderChange
+                    );
+                    
                     self._invalidateDataProvider();
                 } else {
                     
@@ -66,6 +84,7 @@
                 if(itemRenderer && typeof itemRenderer == 'string') {
                     
                     // Set..
+                    self._currentItemRenderer = self._settings.itemRenderer;
                     self._settings.itemRenderer = itemRenderer;
                     self._invalidateItemRenderer();
                 } else {

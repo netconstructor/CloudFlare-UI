@@ -1,6 +1,8 @@
 CloudFlare UI
 =============
 
+jQuery-based UI framework as seen on CloudFlare.com
+
 About
 -----
 
@@ -22,6 +24,7 @@ Documentation
 -------------
 
 Find CloudFlare UI documentation at:
+
 * [The project wiki at Github](http://wiki.github.com/cloudflare/CloudFlare-UI/)
 
 Copyright information
