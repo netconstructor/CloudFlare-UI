@@ -23,34 +23,6 @@
 (function($) {
     
     $.extend(
-        $.fn,
-        {
-            margin: function() {
-                
-                var marginTop = this.css('marginTop').substr(0, this.css('marginTop').length - 2);
-                var marginBottom = this.css('marginBottom').substr(0, this.css('marginBottom').length - 2);
-                var marginLeft = this.css('marginLeft').substr(0, this.css('marginLeft').length - 2);
-                var marginRight = this.css('marginRight').substr(0, this.css('marginRight').length - 2);
-                
-                return {
-                    top: marginTop,
-                    bottom: marginBottom,
-                    left: marginLeft,
-                    right: marginRight,
-                    horizontal: marginLeft + marginRight,
-                    vertical: marginTop + marginBottom
-                };
-            },
-            marginalWidth: function() { return this.width() + this.margin().horizontal; },
-            marginalInnerWidth: function() { return this.innerWidth() + this.margin().horizontal; },
-            marginalOuterWidth: function() { return this.outerWidth() + this.margin().horizontal; },
-            marginalHeight: function() { return this.height() + this.margin().vertical; },
-            marginalInnerHeight: function() { return this.innerHeight() + this.margin().vertical; },
-            marginalOuterHeight: function() { return this.outerHeight() + this.margin().vertical; }
-        }
-    );
-    
-    $.extend(
         $,
         {
             cf: {
@@ -69,7 +41,18 @@
                         console.log(type + " " + message);
                     } catch(e) { /* Console.log not supported... */ }
                 },
-                normalizeCSS: function(measure) {
+                time: function() {
+                    
+                    return (new Date()).getTime();
+                },
+                muteEvent: function(event) {
+                    
+                    try {
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                    } catch(e) {}
+                },
+                lengthToString: function(measure) {
                     
                     measure = $.isFunction(measure) ? measure() : measure;
                     
@@ -80,7 +63,7 @@
                     
                     return measure;
                 },
-                normalizeDigital: function(measure) {
+                lengthToNumber: function(measure) {
                     
                     measure = $.isFunction(measure) ? measure() : measure;
                     
@@ -279,6 +262,129 @@
     $.extend(
         $.cf,
         {
+            Point: $.cf.EventDispatcher.subclass(
+                {
+                    _x: 0,
+                    _y: 0,
+                    _construct: function(x, y) {
+                        
+                        var self = this;
+                        
+                        self.superMethod();
+                        
+                        self.x(x);
+                        self.y(y);
+                        self._invalidate();
+                    },
+                    _invalidate: function() {
+                        
+                        var self = this;
+                        self.dispatch('change', self);
+                    },
+                    x: function(value) {
+                        
+                        var self = this;
+                        
+                        if(value && typeof value == 'number') {
+                            
+                            self._x = value;
+                            self._invalidate();
+                        } else {
+                            
+                            return self._x;
+                        }
+                    },
+                    y: function(value) {
+                        
+                        var self = this;
+                        
+                        if(value && typeof value == 'number') {
+                            
+                            self._y = value;
+                            self._invalidate();
+                        } else {
+                            
+                            return self._y;
+                        }
+                    },
+                    set: function(x, y) {
+                        
+                        var self = this,
+                            changed = false;
+                        
+                        if(x && typeof x == 'number' && x !== self._x) {
+                            
+                            self._x = x;
+                            changed = true;
+                        }
+                        
+                        if(y && typeof y == 'number' && y !== self._y) {
+                            
+                            self._y = y;
+                            changed = true;
+                        }
+                        
+                        if(changed) {
+                            
+                            self._invalidate();
+                        }
+                    },
+                    reset: function() {
+                        
+                        var self = this;
+                        self._x = self._y = 0;
+                        self._invalidate();
+                    },
+                    clone: function() {
+                        
+                        var self = this;
+                        return new $.cf.Point(self._x, self._y);
+                    },
+                    delta: function(other) {
+                        
+                        var self = this;
+                        
+                        if(other instanceof $.cf.Point) {
+                            
+                            return new $.cf.Point(Math.abs(self._x - other.x()), Math.abs(self._y - other.y()));
+                        } else {
+                            
+                            return self.clone();
+                        }
+                        
+                    },
+                    sum: function(other) {
+                        
+                        var self = this;
+                        
+                        if(other instanceof $.cf.Point) {
+                            
+                            return new $.cf.Point(self._x + other.x(), self._y + other.y());
+                        } else {
+                            
+                            return self.clone();
+                        }
+                    },
+                    dot: function(other) {
+                        
+                        var self = this;
+                        
+                        if(other instanceof $.cf.Point) {
+                            
+                            return self._x * other.x() + self._y * other.y();
+                        } else {
+                            
+                            return 0;
+                        }
+                    },
+                    magnitude: function() {
+                        
+                        var self = this;
+                        
+                        return Math.sqrt(self._x * self._x + self._y * self._y);
+                    }
+                }
+            ),
             Query: $.cf.EventDispatcher.subclass(
                 {
                     _construct: function(options) {
@@ -484,4 +590,30 @@
             )
         }
     );
+    
+    
+    $.extend(
+        $.fn,
+        {
+            margin: function() {
+                
+                var marginTop = $.cf.lengthToNumber(this.css('marginTop'));
+                var marginBottom = $.cf.lengthToNumber(this.css('marginBottom'));
+                var marginLeft = $.cf.lengthToNumber(this.css('marginLeft'));
+                var marginRight = $.cf.lengthToNumber(this.css('marginRight'));
+                
+                return {
+                    top: marginTop,
+                    bottom: marginBottom,
+                    left: marginLeft,
+                    right: marginRight,
+                    horizontal: marginLeft + marginRight,
+                    vertical: marginTop + marginBottom
+                };
+            },
+            marginalWidth: function() { return this.outerWidth() + this.margin().horizontal; },
+            marginalHeight: function() { return this.outerHeight() + this.margin().vertical; }
+        }
+    );
+    
 })(jQuery);

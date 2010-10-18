@@ -86,23 +86,6 @@
         }
     );
     
-    $.extend(
-        $.fn,
-        {
-            lineage: function(baseName) {
-                
-                var target = this.eq(0);
-                
-                if(target.data('lineage')) {
-                    
-                    return target.data('lineage')[baseName];
-                }
-                
-                return this;
-            }
-        }
-    );
-    
     // UI component factory inspired by jQuery UI's widget pattern.
     // Expands upon it by incorporating super-class awareness.
     $.extend(

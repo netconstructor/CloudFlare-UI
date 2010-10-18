@@ -30,7 +30,7 @@
                 
                 var self = this;
                 
-                if(self.is('li')) {
+                if(self._element.is('li')) {
                     
                     self._element.addClass('list-item-renderer');
                     self._element.superMethod();
@@ -163,8 +163,8 @@
                 } else {
                     
                     try {
-                        related = $(related);
                         
+                        related = $(related);
                     } catch(e) {
                         
                         return false;

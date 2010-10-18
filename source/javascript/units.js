@@ -471,15 +471,17 @@
                                             
                                             ok(false, "Query failed to retrieve a valid response from the service!");
                                         }
+                                        
+                                        start();
                                     }
                                 );
                                 
                             } catch(e) {
                                 
                                 ok(false, "An exception was thrown while performing test operations: " + e);
+                                
+                                start();
                             }
-                            
-                            start();
                         }
                     );
                     
@@ -749,6 +751,15 @@
                             }
                         }
                     );
+                },
+                button: function() {
+                    
+                    test(
+                        'Button functinality',
+                        function() {
+                            ok(false, "TODO");
+                        }
+                    )
                 },
                 list: function() {
                     
