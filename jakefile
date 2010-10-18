@@ -1,0 +1,32 @@
+#!/usr/bin/env narwhal
+
+var jake = require('jake'),
+    clobber = require('jake/clean').CLOBBER,
+    clean = require('jake/clean').CLEAN,
+    file = require('file'),
+    os = require('os');
+
+var debugDir = './debug',
+    releaseDir = './release';
+
+clean.include(releaseDir + '/*.combined.css');
+clean.exclude('\.git');
+
+clobber.include(debugDir + '/css/*.css', debugDir + '/css/cloudflare-ui/*.css', releaseDir + '/*');
+clobber.exclude('\.git');
+
+jake.task(
+    'build-debug',
+    function() {
+        
+        
+    }
+);
+
+jake.task(
+    'build-release',
+    function() {
+        
+        
+    }
+);
