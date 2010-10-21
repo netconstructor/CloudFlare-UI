@@ -15,10 +15,10 @@ incorporated into jQuery UI. Ideas for features and functionality have been
 borrowed from many sources, and immense thanks goes out to the following
 incredible projects, without which CloudFlare UI could not have been made:
 
-* jQuery (http://jquery.com)
-* jQuery UI (http://ui.jquery.com)
-* QUnit (http://docs.jquery.com/QUnit)
-* Adobe Flex SDK (http://opensource.adobe.com/wiki/display/flexsdk/)
+* [jQuery](http://jquery.com)
+* [jQuery UI](http://ui.jquery.com)
+* [QUnit](http://docs.jquery.com/QUnit)
+* [Adobe Flex SDK](http://opensource.adobe.com/wiki/display/flexsdk/)
 
 Building release libraries
 --------------------------
