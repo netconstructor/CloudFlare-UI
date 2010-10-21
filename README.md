@@ -20,6 +20,29 @@ incredible projects, without which CloudFlare UI could not have been made:
 * QUnit (http://docs.jquery.com/QUnit)
 * Adobe Flex SDK (http://opensource.adobe.com/wiki/display/flexsdk/)
 
+Building release libraries
+--------------------------
+
+Compiled, production-ready versions of the JavaScript and CSS are included in
+the repository. If you want to build these files yourself, you will have to
+install some Ruby gems:
+
+* [Sass](http://github.com/nex3/haml)
+* [Juicer](http://github.com/cjohansen/juicer)
+
+As well as this Nodejs module:
+
+* [Jake](http://github.com/mde/node-jake)
+
+Once you have installed Sass and Juicer, make sure that you have the 
+yui_compressor and closure_compiler packages for Juicer installed as well.
+
+When all dependencies are installed, you can run the commend "jake" in the root
+of your cloned repository directory to build all debug and release files. If you
+want to delete the generated debug files, run "jake clean," and if you want to
+delete the generated release libraries, you can "jake clobber" in order to, well
+you know :)
+
 Documentation
 -------------
 

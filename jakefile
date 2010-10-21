@@ -1,32 +1,151 @@
-#!/usr/bin/env narwhal
-
-var jake = require('jake'),
-    clobber = require('jake/clean').CLOBBER,
-    clean = require('jake/clean').CLEAN,
-    file = require('file'),
-    os = require('os');
+var util = require('util'),
+    path = require('path'),
+    fs = require('fs'),
+    exec = require('child_process').exec,
+    spawn = require('child_process').spawn;
 
 var debugDir = './debug',
-    releaseDir = './release';
+    debugCssDir = debugDir + '/css',
+    debugCfuiCssDir = debugCssDir + '/cloudflare-ui',
+    releaseDir = './release',
+    sourceDir = './source',
+    scssDir = sourceDir + '/scss',
+    scssPartialDir = scssDir + '/partial',
+    cssDir = debugDir + '/css',
+    targetDir = sourceDir + '/targets',
+    jsTarget = targetDir + '/cloudflare.ui.js',
+    cssTarget = targetDir + '/cloudflare.ui.css';
 
-clean.include(releaseDir + '/*.combined.css');
-clean.exclude('\.git');
-
-clobber.include(debugDir + '/css/*.css', debugDir + '/css/cloudflare-ui/*.css', releaseDir + '/*');
-clobber.exclude('\.git');
-
-jake.task(
-    'build-debug',
-    function() {
+var clean = function() {
+    
+    // Clear compiled Sass output
+    var cssFiles = fs.readdirSync(debugCssDir),
+        cfuiCssFiles = fs.readdirSync(debugCfuiCssDir),
+        files = [];
+    
+    for(var cssIndex in cssFiles) {
         
-        
+        if(cssFiles[cssIndex].search('.css') != -1) {
+            
+            files.push(debugCssDir + '/' + cssFiles[cssIndex]);
+        }
     }
+    
+    for(var cfuiCssIndex in cfuiCssFiles) {
+        
+        if(cfuiCssFiles[cfuiCssIndex].search('.css') != -1) {
+            
+            files.push(debugCfuiCssDir + '/' + cfuiCssFiles[cfuiCssIndex]);
+        }
+    }
+    
+    for(var i = 0; i < files.length; i++) {
+        
+        if(files[i].search('.css') != -1) {
+            
+            try {
+                fs.unlinkSync(files[i]);
+            } catch(e){}
+        }
+    }
+};
+
+var clobber = function() {
+    
+    // Delete the generated output
+    try {
+        var output = fs.readdirSync(releaseDir);
+    } catch(e) {}
+    
+    for(var fileIndex in output) {
+        
+        if(output[fileIndex] != '.' && output[fileIndex] != '..') {
+            
+            try {
+                fs.unlinkSync(releaseDir + '/' + output[fileIndex]);
+            } catch(e){}
+        }
+    }
+    
+    try {
+        fs.rmdirSync(fs.realpathSync(releaseDir));
+    } catch(e) {}
+};
+
+task(
+    'clobber', [],
+    clobber
 );
 
-jake.task(
-    'build-release',
+task(
+    'clean', [],
+    clean
+);
+
+task(
+    'default', ['build'],
+    function() {}
+);
+
+task(
+    'build', [],
     function() {
         
+        util.puts('Compiling SCSS to CSS...');
         
+        exec(
+            'sass --load-path ' + scssPartialDir + ' --no-cache --style expanded --update ' + scssDir + ':' + cssDir,
+            function(error) {
+                
+                path.exists(
+                    releaseDir,
+                    function(exists) {
+                        
+                        if(!exists) {
+                            
+                            util.puts('Creating release directory...');
+                            
+                            fs.mkdirSync(releaseDir, 0755);
+                        }
+                        
+                        if(error !== null) {
+                            
+                            util.puts('ERROR: ' + error);
+                        } else {
+                            
+                            util.puts('Minifying JavaScript...');
+                            
+                            exec(
+                                'juicer merge --force --m closure_compiler -s ' + jsTarget + ' -o ' + releaseDir,
+                                function(error) {
+                                    
+                                    if(error !== null) {
+                                        
+                                        util.puts('ERROR: ' + error);
+                                    } else {
+                                        
+                                        util.puts('Minifying CSS...');
+                                        
+                                        exec(
+                                            'juicer merge --force -s ' + cssTarget + ' -o ' + releaseDir,
+                                            function(error) {
+                                                
+                                                if(error !== null) {
+                                        
+                                                    util.puts('ERROR: ' + error);
+                                                } else {
+                                                    
+                                                    util.puts('Done!');
+                                                }
+                                            }
+                                        );
+                                    }
+                                }
+                            );
+                        }
+                    }
+                );
+            }
+        );
     }
 );
